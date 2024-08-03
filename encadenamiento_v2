@@ -1,0 +1,42 @@
+if __name__ == "__main__":
+    hechos = set()
+
+    # Definición de reglas para diagnóstico vehicular
+    reglas = [
+        Regla({"ruido del motor"}, "problema en el motor"),
+        Regla({"humo del escape", "luz de check engine encendida"}, "falla en el sistema de escape"),
+        Regla({"fuga de aceite", "humo del escape"}, "problema en el motor"),
+        Regla({"luz de check engine encendida", "vibraciones en el volante"}, "problema en la transmisión"),
+        Regla({"frenos con sonido", "pedal de freno suave"}, "problema en el sistema de frenos"),
+    ]
+
+    while True:
+        # Solicita al usuario que ingrese un hecho
+        hecho = input("Ingrese un hecho sobre el vehículo (o 'salir' para terminar): ").strip()
+        if hecho.lower() == 'salir':
+            break
+        if hecho:
+            hechos.add(hecho)
+        else:
+            print("El hecho ingresado no puede estar vacío.")
+
+        # Pregunta si desea ingresar otro hecho o evaluar
+        opcion = input("¿Desea ingresar otro hecho (1) o evaluar (2)?: ").strip()
+        if opcion == '2':
+            # Realiza el encadenamiento hacia adelante para obtener las conclusiones
+            conclusiones = encadenamiento_hacia_adelante(hechos, reglas)
+
+            # Imprime las posibles conclusiones
+            if conclusiones:
+                print("Posible diagnóstico vehicular:")
+                for conclusion in conclusiones:
+                    print(f"- {conclusion}")
+            else:
+                print("No se encontraron conclusiones basadas en los hechos proporcionados.")
+            
+            # Pregunta si desea ingresar más hechos o salir
+            opcion_final = input("¿Desea ingresar más hechos (1) o salir (2)?: ").strip()
+            if opcion_final == '2':
+                break
+        elif opcion != '1':
+            print("Opción no válida, por favor ingrese '1' o '2'.")
