@@ -1,0 +1,90 @@
+class Arco:
+    def __init__(self, origen, destino, etiqueta):
+        self.origen = origen
+        self.destino = destino
+        self.etiqueta = etiqueta
+
+    def __str__(self):
+        return f"{self.origen.etiqueta} -- {self.etiqueta} --> {self.destino.etiqueta}"
+
+
+class Nodo:
+    def __init__(self, etiqueta):
+        self.etiqueta = etiqueta
+        self.arcos = []
+
+    def agregar_arco(self, destino, etiqueta_arco):
+        self.arcos.append(Arco(self, destino, etiqueta_arco))
+
+
+class RedSemantica:
+    def __init__(self):
+        self.nodos = []
+
+    def crear_nodo(self, etiqueta):
+        nodo = Nodo(etiqueta)
+        self.nodos.append(nodo)
+        return nodo
+
+    def mostrar_red(self):
+        for nodo in self.nodos:
+            for arco in nodo.arcos:
+                print(arco)
+
+
+def main():
+    red = RedSemantica()
+
+    #Avestruz
+    avestruz = red.crear_nodo("Avestruz")
+    animal = red.crear_nodo("Animal")
+    tipo = red.crear_nodo("Ave")
+    tiene = red.crear_nodo("Tiene")
+    vuela = red.crear_nodo("Puede")
+    patas_largas = red.crear_nodo("Patas largas")
+    puede_volar = red.crear_nodo("No")
+
+    avestruz.agregar_arco(animal, "es un")
+    avestruz.agregar_arco(tipo, "tipo de")
+    avestruz.agregar_arco(patas_largas, "tiene")
+    avestruz.agregar_arco(puede_volar, "Vuela")
+    
+    #Albatros
+    albatros = red.crear_nodo("Albatros")
+    animal = red.crear_nodo("Animal")
+    tipo = red.crear_nodo("Ave")
+    puede_volar = red.crear_nodo("Muy bien")
+
+    albatros.agregar_arco(animal, "es un")
+    albatros.agregar_arco(tipo, "tipo de")
+    albatros.agregar_arco(puede_volar, "Vuela")
+    
+    
+    #Ballena
+    ballena = red.crear_nodo("Ballena")
+    animal = red.crear_nodo("Animal")
+    tipo = red.crear_nodo("Mamifero")
+    tiene_piel = red.crear_nodo("piel")
+    vive_en = red.crear_nodo("mar")
+
+    ballena.agregar_arco(animal, "es un")
+    ballena.agregar_arco(tipo, "tipo de")
+    ballena.agregar_arco(tiene_piel, "tiene")
+    ballena.agregar_arco(vive_en, "vive en")
+    
+    #tigre
+    tigre = red.crear_nodo("Tigre")
+    animal = red.crear_nodo("Animal")
+    tipo = red.crear_nodo("Mamifero")
+    que_come = red.crear_nodo("carne")
+
+    tigre.agregar_arco(animal, "es un")
+    tigre.agregar_arco(tipo, "tipo de")
+    tigre.agregar_arco(que_come, "come")
+    
+        
+    red.mostrar_red()
+
+
+if __name__ == "__main__":
+    main()
