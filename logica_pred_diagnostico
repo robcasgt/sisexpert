@@ -1,0 +1,71 @@
+class Enfermedad:
+    def __init__(self, nombre, sintomas):
+        # Inicializa una nueva enfermedad con un nombre y una lista de síntomas
+        self.nombre = nombre
+        self.sintomas = sintomas
+
+    def __repr__(self):
+        # Define cómo se representará la enfermedad al imprimirla
+        return self.nombre
+
+
+class SistemaDiagnostico:
+    def __init__(self):
+        # Inicializa el sistema de diagnóstico con una lista vacía de enfermedades
+        self.enfermedades = []
+
+    def agregar_enfermedad(self, enfermedad):
+        # Agrega una enfermedad a la lista de enfermedades del sistema
+        self.enfermedades.append(enfermedad)
+
+    def diagnosticar(self, sintomas_paciente):
+        # Diagnostica enfermedades basándose en la lista de síntomas proporcionada por el paciente
+        diagnosticos_posibles = {}
+
+        for enfermedad in self.enfermedades:
+            # Convierte los síntomas de la enfermedad y del paciente en conjuntos para facilitar la comparación
+            sintomas_enfermedad = set(enfermedad.sintomas)
+            sintomas_paciente_set = set(sintomas_paciente)
+
+            # Calcula la intersección entre los síntomas de la enfermedad y los del paciente
+            coincidencias = sintomas_enfermedad.intersection(sintomas_paciente_set)
+
+            if coincidencias:
+                # Si hay coincidencias, añade la enfermedad al diccionario con el número de coincidencias
+                diagnosticos_posibles[enfermedad] = coincidencias
+
+        if diagnosticos_posibles:
+            # Ordena las enfermedades por el número de coincidencias en orden descendente
+            diagnosticos_ordenados = sorted(diagnosticos_posibles.items(), key=lambda x: len(x[1]), reverse=True)
+            return diagnosticos_ordenados
+        else:
+            # Si no se encontró ningún diagnóstico, devuelve un mensaje indicando que no se pudo diagnosticar
+            return ["No se encontró un diagnóstico basado en los síntomas proporcionados."]
+
+
+if __name__ == "__main__":
+    # Definir enfermedades y sus síntomas
+    gripe = Enfermedad("Gripe", ["fiebre", "tos", "dolor de cabeza", "congestión nasal"])
+    resfriado = Enfermedad("Resfriado", ["tos", "congestión nasal", "dolor de garganta"])
+    neumonia = Enfermedad("Neumonía", ["fiebre", "tos", "dolor en el pecho", "dificultad para respirar"])
+
+    # Crear el sistema de diagnóstico
+    sistema = SistemaDiagnostico()
+
+    # Agregar enfermedades al sistema
+    sistema.agregar_enfermedad(gripe)
+    sistema.agregar_enfermedad(resfriado)
+    sistema.agregar_enfermedad(neumonia)
+
+    # Lista de síntomas del paciente
+    sintomas_paciente = ["fiebre", "tos", "dolor de cabeza"]
+
+    # Realizar diagnóstico
+    diagnosticos = sistema.diagnosticar(sintomas_paciente)
+
+    # Mostrar resultados del diagnóstico
+    print("Diagnóstico(s) posible(s):")
+    for diagnostico, sintomas in diagnosticos:
+        print(f"Enfermedad: {diagnostico}")
+        print(f"Síntomas coincidentes: {', '.join(sintomas)}")
+        print(f"Todos los síntomas asociados: {', '.join(diagnostico.sintomas)}\n")
