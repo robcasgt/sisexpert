@@ -1,0 +1,42 @@
+# Catalogo de peliculas en tablas hash
+peliculas = {
+    ("Acción", "Larga", "Aventura"): "Jurassic Park",
+    ("Drama", "Larga", "Inspirador"): "Siete Almas",
+    ("Animación", "Corta", "Familiar"): ["Intensamente", "Sing"],
+    ("Ciencia Ficción", "Larga", "Intrigante"): "Colateral",
+    ("Musical", "Larga", "Romántico"): "La La Land",
+    ("Acción", "Corta", "Intenso"): "Guerra mundial Z"
+}
+
+def obtener_preferencia(mensaje, opciones):
+    while True:
+        respuesta = input(mensaje).strip()
+        if respuesta in opciones:
+            return respuesta
+        else:
+            print(f"Por favor, elige una opción válida: {', '.join(opciones)}")
+
+def recomendar_pelicula():
+    print("Bienvenido al sistema de recomendaciones de películas.")
+
+    # Obtener preferencias del usuario
+    genero_preferido = obtener_preferencia("¿Qué género prefieres? (Acción, Drama, Animación, Ciencia Ficción, Musical): ", ["Acción", "Drama", "Animación", "Ciencia Ficción", "Musical"])
+    duracion_preferida = obtener_preferencia("¿Qué duración prefieres? (Corta, Larga): ", ["Corta", "Larga"])
+    estilo_preferido = obtener_preferencia("¿Qué estilo prefieres? (Aventura, Inspirador, Familiar, Intrigante, Romántico, Intenso): ", ["Aventura", "Inspirador", "Familiar", "Intrigante", "Romántico", "Intenso"])
+
+    # Buscar película que coincida con las preferencias
+    clave = (genero_preferido, duracion_preferida, estilo_preferido)
+    pelicula = peliculas.get(clave)
+
+    if pelicula:
+        if isinstance(pelicula, list):
+            print("Nuestra recomendacion es:")
+            for p in pelicula:
+                print(f"- {p}")
+        else:
+            print(f"Nuestra recomendacion es: {pelicula}")
+    else:
+        print("No encontramos una recomendacion segun tus respuestas.")
+
+# Ejecutar el sistema
+recomendar_pelicula()
