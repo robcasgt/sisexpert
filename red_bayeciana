@@ -1,0 +1,102 @@
+class RedBayesianaVehicular:
+    def __init__(self):
+        """
+        Inicializa la red bayesiana con las probabilidades base de los problemas vehiculares
+        y las probabilidades condicionales de los síntomas asociados a cada problema.
+        """
+        # Probabilidad de que un problema específico ocurra (sin conocer los síntomas)
+        self.probabilidad_problema = {
+            "Falla de batería": 0.3,
+            "Problema de motor": 0.2,
+            "Problema en el alternador": 0.1,
+            "Bujías defectuosas": 0.4
+        }
+
+        # Probabilidad de observar un síntoma dado un problema específico
+        self.probabilidad_sintoma_dado_un_problema = {
+            "Dificultad para encender": {"Falla de batería": 0.9, "Problema de motor": 0.6, "Problema en el alternador": 0.8, "Bujías defectuosas": 0.3},
+            "Luces débiles": {"Falla de batería": 0.7, "Problema de motor": 0.2, "Problema en el alternador": 0.9, "Bujías defectuosas": 0.1},
+            "Motor apagándose": {"Falla de batería": 0.4, "Problema de motor": 0.8, "Problema en el alternador": 0.6, "Bujías defectuosas": 0.7}
+        }
+
+    def inferir_probabilidad_problema(self, problema, dificultad_para_encender, luces_debiles, motor_apagandose):
+        """
+        Calcula la probabilidad de que un problema específico ocurra dado los síntomas observados.
+        Aplica la regla de Bayes, multiplicando la probabilidad base por las probabilidades condicionales.
+
+        :param problema: El problema vehicular a evaluar (ej. "Falla de batería")
+        :param dificultad_para_encender: Booleano que indica si el vehículo tiene dificultad para encender
+        :param luces_debiles: Booleano que indica si las luces están débiles
+        :param motor_apagandose: Booleano que indica si el motor se apaga
+        :return: La probabilidad actualizada de que el problema ocurra dado los síntomas.
+        """
+        # Probabilidad base del problema
+        prob_problema = self.probabilidad_problema[problema]
+
+        # Probabilidad de los síntomas dado el problema
+        prob_dificultad_encender = self.probabilidad_sintoma_dado_un_problema["Dificultad para encender"][problema]
+        prob_luces_debiles = self.probabilidad_sintoma_dado_un_problema["Luces débiles"][problema]
+        prob_motor_apagandose = self.probabilidad_sintoma_dado_un_problema["Motor apagándose"][problema]
+
+        # Combinación de las probabilidades utilizando la regla de Bayes
+        unir_prob = prob_problema
+
+        if dificultad_para_encender:
+            unir_prob *= prob_dificultad_encender
+        else:
+            unir_prob *= (1 - prob_dificultad_encender)
+
+        if luces_debiles:
+            unir_prob *= prob_luces_debiles
+        else:
+            unir_prob *= (1 - prob_luces_debiles)
+
+        if motor_apagandose:
+            unir_prob *= prob_motor_apagandose
+        else:
+            unir_prob *= (1 - prob_motor_apagandose)
+
+        return unir_prob
+
+    def diagnostico(self, dificultad_para_encender, luces_debiles, motor_apagandose):
+        """
+        Genera un diagnóstico basado en los síntomas proporcionados, calculando las probabilidades
+        para cada problema vehicular y mostrando los resultados normalizados.
+
+        :param dificultad_para_encender: Booleano que indica si el vehículo tiene dificultad para encender
+        :param luces_debiles: Booleano que indica si las luces están débiles
+        :param motor_apagandose: Booleano que indica si el motor se apaga
+        """
+        # Calcular las probabilidades de cada problema dado los síntomas
+        bateria_prob = self.inferir_probabilidad_problema("Falla de batería", dificultad_para_encender, luces_debiles, motor_apagandose)
+        motor_prob = self.inferir_probabilidad_problema("Problema de motor", dificultad_para_encender, luces_debiles, motor_apagandose)
+        alternador_prob = self.inferir_probabilidad_problema("Problema en el alternador", dificultad_para_encender, luces_debiles, motor_apagandose)
+        bujias_prob = self.inferir_probabilidad_problema("Bujías defectuosas", dificultad_para_encender, luces_debiles, motor_apagandose)
+
+        # Normalizar las probabilidades para que sumen 1
+        total_prob = bateria_prob + motor_prob + alternador_prob + bujias_prob
+
+        bateria_prob /= total_prob
+        motor_prob /= total_prob
+        alternador_prob /= total_prob
+        bujias_prob /= total_prob
+
+        # Mostrar los resultados
+        print(f"Probabilidad de Falla de batería: {bateria_prob * 100:.2f}%")
+        print(f"Probabilidad de Problema de motor: {motor_prob * 100:.2f}%")
+        print(f"Probabilidad de Problema en el alternador: {alternador_prob * 100:.2f}%")
+        print(f"Probabilidad de Bujías defectuosas: {bujias_prob * 100:.2f}%")
+
+
+if __name__ == "__main__":
+    # Crear la red bayesiana vehicular
+    red = RedBayesianaVehicular()
+
+    # Definir síntomas observados
+    dificultad_para_encender = True
+    luces_debiles = True
+    motor_apagandose = False
+
+    # Mostrar el diagnóstico basado en los síntomas proporcionados
+    print("Diagnóstico basado en los síntomas: dificultad para encender, luces débiles, motor no apagándose.")
+    red.diagnostico(dificultad_para_encender, luces_debiles, motor_apagandose)
