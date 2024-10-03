@@ -1,0 +1,36 @@
+from experta import *
+
+# Definir los hechos
+class Sintoma(Fact):
+    """ Información acerca de los síntomas del paciente """
+    pass
+
+# Crear la clase de sistema experto
+class DiagnosticoEnfermedad(KnowledgeEngine):
+    @Rule(Sintoma(tos='si', fiebre='si', dolor_cabeza='si'))
+    def diagnostico_gripe(self):
+        print("Diagnóstico: Posible Gripe")
+
+    @Rule(Sintoma(tos='no', fiebre='si', dolor_cabeza='si'))
+    def diagnostico_resfriado(self):
+        print("Diagnóstico: Posible Resfriado")
+
+    @Rule(Sintoma(tos='si', fiebre='no', dolor_cabeza='no'))
+    def diagnostico_alergia(self):
+        print("Diagnóstico: Posible Alergia")
+
+    @Rule(Sintoma(tos='no', fiebre='no', dolor_cabeza='si'))
+    def diagnostico_migraña(self):
+        print("Diagnóstico: Posible Migraña")
+
+# Crear la instancia del sistema experto
+motor = DiagnosticoEnfermedad()
+
+# Iniciar el motor
+motor.reset()
+
+# Declarar los hechos (en este caso, síntomas que el usuario tiene)
+motor.declare(Sintoma(tos='no', fiebre='no', dolor_cabeza='si'))  # Puedes cambiar los valores para probar otros diagnósticos
+
+# Ejecutar el motor de reglas
+motor.run()
