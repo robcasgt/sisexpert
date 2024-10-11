@@ -1,0 +1,58 @@
+-- Crear base de datos en mysql
+CREATE DATABASE IF NOT EXISTS diagnostico_vehiculos;
+
+USE diagnostico_vehiculos;
+
+-- Crear tabla para hechos
+CREATE TABLE IF NOT EXISTS hechos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    hecho VARCHAR(255) NOT NULL UNIQUE
+);
+
+-- Crear tabla para reglas
+CREATE TABLE IF NOT EXISTS reglas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    conclusion VARCHAR(255) NOT NULL
+);
+
+-- Crear tabla para condiciones
+CREATE TABLE IF NOT EXISTS condiciones (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_regla INT NOT NULL,
+    condicion VARCHAR(255) NOT NULL,
+    FOREIGN KEY (id_regla) REFERENCES reglas(id) ON DELETE CASCADE
+);
+
+-- Insertar datos en la tabla de hechos
+INSERT INTO hechos (hecho) VALUES
+('no arranca'),
+('olor a gasolina'),
+('pedal flojo'),
+('rechinido de frenos'),
+('sonido extraño'),
+('vibraciones'),
+('luz de motor encendida'),
+('fugas de líquido');
+
+-- Insertar datos en la tabla de reglas
+INSERT INTO reglas (conclusion) VALUES
+('batería baja'),
+('problemas con los frenos'),
+('bomba de gasolina'),
+('problemas de suspensión'),
+('verificar sistema de motor'),
+('posibles problemas con el sistema de refrigeración');
+
+-- Insertar datos en la tabla de condiciones
+INSERT INTO condiciones (id_regla, condicion) VALUES
+(1, 'no arranca'),
+(2, 'pedal flojo'),
+(2, 'rechinido de frenos'),
+(3, 'no arranca'),
+(3, 'olor a gasolina'),
+(4, 'sonido extraño'),
+(4, 'vibraciones'),
+(5, 'luz de motor encendida'),
+(6, 'fugas de líquido');
+
+commit;
