@@ -1,0 +1,189 @@
+import mysql.connector
+import tkinter as tk
+from tkinter import messagebox, simpledialog, ttk
+
+class Regla:
+    """Clase que representa una regla de diagnóstico.
+
+    Attributes:
+        conclusion: La conclusión que se deriva si se cumplen las condiciones.
+        condiciones: Un conjunto de condiciones necesarias para alcanzar la conclusión.
+    """
+    def __init__(self, conclusion):
+        self.conclusion = conclusion
+        self.condiciones = set()
+
+def obtener_reglas_y_condiciones(conn):
+    """Obtiene las reglas y sus condiciones de la base de datos.
+
+    Args:
+        conn: Conexión a la base de datos.
+
+    Returns:
+        Listado de reglas con sus condiciones.
+    """
+    cursor = conn.cursor()
+
+    # Obtener las reglas
+    cursor.execute("SELECT id, conclusion FROM reglas")
+    reglas = {row[0]: Regla(row[1]) for row in cursor.fetchall()}
+
+    # Obtener las condiciones y asociarlas a las reglas
+    cursor.execute("SELECT id_regla, condicion FROM condiciones")
+    for id_regla, condicion in cursor.fetchall():
+        reglas[id_regla].condiciones.add(condicion)
+
+    cursor.close()
+    return list(reglas.values())
+
+def encadenamiento_hacia_adelante(hechos, reglas):
+    """Realiza el encadenamiento hacia adelante para obtener conclusiones.
+
+    Args:
+        hechos: Conjunto de hechos conocidos.
+        reglas: Lista de reglas para evaluar.
+
+    Returns:
+        Conjunto de conclusiones derivadas de los hechos.
+    """
+    conclusiones = set()
+    nuevo_hecho_agregado = True
+
+    while nuevo_hecho_agregado:
+        nuevo_hecho_agregado = False
+
+        for regla in reglas:
+            # Si las condiciones de la regla están en los hechos
+            if regla.condiciones.issubset(hechos) and regla.conclusion not in hechos:
+                hechos.add(regla.conclusion)
+                conclusiones.add(regla.conclusion)
+                nuevo_hecho_agregado = True
+
+    return conclusiones
+
+def obtener_conclusiones_por_hecho(hecho, reglas):
+    """Obtiene conclusiones asociadas a un hecho dado.
+
+    Args:
+        hecho: Hecho ingresado por el usuario.
+        reglas: Lista de reglas disponibles.
+
+    Returns:
+        Conjunto de conclusiones asociadas al hecho.
+    """
+    conclusiones = set()
+    
+    for regla in reglas:
+        if hecho in regla.condiciones:
+            conclusiones.add(regla.conclusion)
+    
+    return conclusiones
+
+def agregar_hecho():
+    """Agrega un hecho ingresado por el usuario y muestra las conclusiones asociadas."""
+    hecho = entry_hecho.get().strip().lower()
+    if hecho:
+        hechos.add(hecho)  # Agregar el hecho al conjunto de hechos
+        entry_hecho.delete(0, tk.END)
+        messagebox.showinfo("Información", f"Hecho '{hecho}' agregado.")
+
+        # Obtener conclusiones asociadas al hecho ingresado
+        conclusiones_asociadas = obtener_conclusiones_por_hecho(hecho, reglas)
+        if conclusiones_asociadas:
+            resultados_var.set("Posibles diagnósticos asociados:\n" + "\n".join(conclusiones_asociadas))
+        else:
+            resultados_var.set("No se encontraron diagnósticos asociados.")
+    else:
+        messagebox.showwarning("Advertencia", "Por favor, ingrese un hecho.")
+
+def grabar_nuevo_hecho():
+    """Graba un nuevo hecho y lo asocia a una regla existente."""
+    nuevo_hecho = simpledialog.askstring("Nuevo Hecho", "Ingrese el nuevo hecho:")
+    if nuevo_hecho:
+        # Crear una nueva ventana para seleccionar la regla
+        ventana_regla = tk.Toplevel()
+        ventana_regla.title("Seleccionar Regla")
+
+        # Crear un combobox para seleccionar la regla
+        regla_seleccionada = tk.StringVar()
+        combo_reglas = ttk.Combobox(ventana_regla, textvariable=regla_seleccionada)
+        combo_reglas['values'] = [f"{regla.conclusion} (ID: {idx})" for idx, regla in enumerate(reglas)]
+        combo_reglas.pack(pady=10)
+
+        def confirmar_asociacion():
+            """Confirma la asociación del nuevo hecho con la regla seleccionada."""
+            regla_id = combo_reglas.current()
+            if regla_id != -1:  # Si se ha seleccionado una regla válida
+                try:
+                    cursor = conn.cursor()
+                    cursor.execute("INSERT INTO hechos (hecho) VALUES (%s)", (nuevo_hecho,))
+                    cursor.execute("INSERT INTO condiciones (id_regla, condicion) VALUES (%s, %s)", (regla_id + 1, nuevo_hecho))  # +1 porque el ID de la base de datos comienza en 1
+                    conn.commit()
+                    cursor.close()
+                    messagebox.showinfo("Información", f"Hecho '{nuevo_hecho}' grabado y asociado a la regla seleccionada.")
+                    ventana_regla.destroy()  # Cerrar la ventana de selección de regla
+                except Exception as e:
+                    messagebox.showerror("Error", f"No se pudo grabar el hecho: {e}")
+            else:
+                messagebox.showwarning("Advertencia", "Por favor, seleccione una regla.")
+
+        btn_confirmar = tk.Button(ventana_regla, text="Confirmar Asociación", command=confirmar_asociacion)
+        btn_confirmar.pack(pady=10)
+
+def salir():
+    """Cierra la aplicación."""
+    conn.close()  # Cerrar la conexión a la base de datos
+    window.destroy()  # Cerrar la ventana principal
+
+def main():
+    """Función principal para ejecutar la aplicación."""
+    global reglas, hechos, resultados_var, entry_hecho, conn
+
+    # Conectar a la base de datos
+    conn = mysql.connector.connect(
+        host="localhost",
+        user="root",  # usuario root
+        password="testing1.",  # contraseña de root
+        database="diagnostico_vehiculos"  # Nombre de la bd
+    )
+
+    # Obtener reglas desde la base de datos
+    reglas = obtener_reglas_y_condiciones(conn)
+
+    hechos = set()  # Conjunto para almacenar los hechos ingresados
+
+    # Crear la ventana de la GUI
+    global window
+    window = tk.Tk()
+    window.title("Diagnóstico de Vehículos")
+
+    # Etiqueta y campo de entrada
+    tk.Label(window, text="SISTEMA EXPERTO PARA DIAGNOSTICO DE VEHICULOS").pack(pady=10)
+    tk.Label(window, text="Ingrese un hecho:").pack(pady=10)
+    entry_hecho = tk.Entry(window)
+    entry_hecho.pack(pady=10)
+
+    # Botón para diagnóstico
+    btn_diagnostico = tk.Button(window, text="Diagnóstico", command=agregar_hecho)
+    btn_diagnostico.pack(pady=10)
+
+    # Botón para grabar nuevo hecho
+    btn_grabar_hecho = tk.Button(window, text="Grabar Nuevo Hecho", command=grabar_nuevo_hecho)
+    btn_grabar_hecho.pack(pady=10)
+    
+    # Etiqueta de autor
+    tk.Label(window, text="Programa realizado por Roberto Castillo").pack(pady=10)
+
+    # Botón para salir
+    btn_salir = tk.Button(window, text="Salir", command=salir)
+    btn_salir.pack(pady=10)
+
+    # Variable para mostrar resultados
+    resultados_var = tk.StringVar()
+    resultados_label = tk.Label(window, textvariable=resultados_var, justify="left")
+    resultados_label.pack(pady=10)
+
+    window.mainloop()  # Iniciar el bucle de la GUI
+
+if __name__ == "__main__":
+    main()
